@@ -18,6 +18,7 @@ import com.ankamma.user.application.model.UserList;
 import com.ankamma.user.application.model.UserRequest;
 import com.ankamma.user.application.model.UserResponse;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 
 @Service
 public class UserService {
@@ -73,6 +74,7 @@ public class UserService {
 		return userExit;
 
 	}
+
 	@HystrixCommand(fallbackMethod = "existsByEmailHystrix")
 	public UserExit existsByEmail(String email) {
 		UserExit userExit = null;
@@ -89,14 +91,18 @@ public class UserService {
 		}
 		return userExit;
 	}
+
 	public UserExit existsByEmailHystrix(String email) {
-		UserExit exit=new UserExit();
+		UserExit exit = new UserExit();
 		exit.setAvailable(false);
-		
+
 		return exit;
-		
+
 	}
-	@HystrixCommand(fallbackMethod = "getUserNamesHystrix")
+
+	@HystrixCommand(fallbackMethod = "getUserNamesHystrix", commandProperties = {
+			@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000"),
+			@HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60") })
 	public UserList getUserNames(String username) {
 		UserList userList = null;
 		try {
@@ -112,26 +118,30 @@ public class UserService {
 		return userList;
 
 	}
-	
+
 	public UserList getUserNamesHystrix(String username) {
-		UserList list=new UserList();
+		UserList list = new UserList();
 		list.setName(username);
 		list.setEmail("ankamma.java@gmail.com");
 		list.setId(12l);
 		list.setPassword("ankammma");
 		list.setRoleList(setRoleList());
 		return list;
-		
+
 	}
+
 	private List<RoleList> setRoleList() {
-		List<RoleList> list=new ArrayList<>();
-		RoleList roleList=new RoleList();
+		List<RoleList> list = new ArrayList<>();
+		RoleList roleList = new RoleList();
 		roleList.setId(13l);
 		roleList.setName("admin");
 		list.add(roleList);
 		return list;
 	}
-	@HystrixCommand(fallbackMethod = "getUserListHystrix")
+
+	@HystrixCommand(fallbackMethod = "getUserListHystrix", commandProperties = {
+			@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000"),
+			@HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60") })
 	public List<UserList> getUserList() {
 		List<UserList> userList = null;
 		try {
@@ -147,10 +157,10 @@ public class UserService {
 		}
 		return userList;
 	}
-	
-	public List<UserList> getUserListHystrix(){
+
+	public List<UserList> getUserListHystrix() {
 		return new ArrayList<>();
-		
+
 	}
 
 }
